@@ -29,44 +29,30 @@
     let playerWidth = 50;
     let playerHeight = 50;
     let playerX = 100;
-    let playerY = canvas.height - playerHeight; // プレイヤーが地面に着く位置
+    let playerY = canvas.height - playerHeight;
     let playerVelocity = 5;
     let isJumping = false;
     let jumpStrength = 15; // ジャンプの強さ
     let gravity = 0.8; // 重力の強さ
     let velocityY = 0; // Y方向の速度
-    let isOnGround = false;
-
-    // プレイヤー画像を読み込む
-    const playerImage = new Image();
-    playerImage.src = 'player.png'; // 画像のパス
+    let isOnGround = true;
 
     // キーの状態
     let keys = {};
-
-    // キーが押されたときの処理
+    
     window.addEventListener("keydown", (e) => {
       keys[e.key] = true;
     });
 
-    // キーが離されたときの処理
     window.addEventListener("keyup", (e) => {
       keys[e.key] = false;
     });
 
-    // プレイヤーを描画
-    function drawPlayer() {
-      ctx.drawImage(playerImage, playerX, playerY, playerWidth, playerHeight);
-    }
-
-    // 背景をブロックに変更
-    let backgroundX = 0; // 背景の初期位置
-    function drawBackground() {
-      ctx.fillStyle = "#228B22"; // 緑色のブロック背景
-      ctx.fillRect(0, canvas.height - 100, canvas.width, 100); // 地面を描画
-      ctx.fillStyle = "#D3D3D3"; // ブロックの色
-      ctx.fillRect(backgroundX, 0, 200, canvas.height); // 背景にブロックを描画
-    }
+    // 障害物設定
+    let obstacles = [
+      { x: 400, y: canvas.height - 60, width: 50, height: 50 },
+      { x: 600, y: canvas.height - 100, width: 50, height: 50 }
+    ];
 
     // プレイヤーの動き
     function updatePlayer() {
@@ -77,10 +63,10 @@
         playerX += playerVelocity;
       }
 
-      // ジャンプ
-      if (!isJumping && (keys[" "])) {
+      // ジャンプ処理
+      if (!isJumping && (keys[" "] || keys["ArrowUp"])) {
         isJumping = true;
-        velocityY = -jumpStrength; // ジャンプ開始
+        velocityY = -jumpStrength;
       }
 
       // ジャンプ中の物理演算
@@ -90,60 +76,44 @@
       }
 
       // 地面に到達したら
-      if (playerY >= canvas.height - playerHeight - 100) {
-        playerY = canvas.height - playerHeight - 100;
+      if (playerY >= canvas.height - playerHeight) {
+        playerY = canvas.height - playerHeight;
         isJumping = false;
-        velocityY = 0; // 着地後は速度をリセット
-      }
-
-      // 横スクロール: プレイヤーが画面の端に到達すると背景を移動
-      if (playerX >= canvas.width / 2) {
-        backgroundX -= playerVelocity; // プレイヤーが右に進むと背景が左に移動
-      }
-      if (playerX <= canvas.width / 4) {
-        backgroundX += playerVelocity; // プレイヤーが左に進むと背景が右に移動
-      }
-
-      // 背景のスクロール範囲を制限
-      if (backgroundX < -canvas.width) {
-        backgroundX = 0; // 背景が完全に左にスクロールしたらリセット
-      } else if (backgroundX > 0) {
-        backgroundX = -canvas.width; // 背景が完全に右にスクロールしたらリセット
+        velocityY = 0;
       }
     }
 
-    // ゲームの更新
+    // 背景描画
+    function drawBackground() {
+      ctx.fillStyle = "#32CD32"; // 緑色
+      ctx.fillRect(0, canvas.height - 50, canvas.width, 50); // 地面
+    }
+
+    // 障害物描画
+    function drawObstacles() {
+      ctx.fillStyle = "#8B4513"; // 茶色
+      obstacles.forEach(obstacle => {
+        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+      });
+    }
+
+    // プレイヤー描画
+    function drawPlayer() {
+      ctx.fillStyle = "#FF6347"; // 赤色
+      ctx.fillRect(playerX, playerY, playerWidth, playerHeight);
+    }
+
+    // ゲームループ
     function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      drawBackground(); // 背景の描画
+      drawBackground();
+      drawObstacles();
       updatePlayer();
       drawPlayer();
-
-      // 進行距離の計算と表示
-      const distance = playerX / 10; // 進んだ距離 (仮に10pxで1メートルとする)
-      const kanjiDistance = toKanji(Math.floor(distance)); // 漢数字に変換
-
-      ctx.font = "30px Arial";
-      ctx.fillStyle = "black";
-      ctx.fillText(kanjiDistance + "メートル", canvas.width - 150, 50); // 右上に表示
 
       requestAnimationFrame(gameLoop);
     }
 
-    // 漢数字に変換する関数
-    function toKanji(number) {
-      const kanjiNumbers = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
-      const str = number.toString();
-      let kanjiString = '';
-      
-      for (let char of str) {
-        kanjiString += kanjiNumbers[parseInt(char)];
-      }
-      return kanjiString;
-    }
-
-    // ゲーム開始
     gameLoop();
   </script>
 </body>
