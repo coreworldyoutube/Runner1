@@ -39,11 +39,7 @@
 
     // プレイヤー画像を読み込む
     const playerImage = new Image();
-    playerImage.src = 'player.png'; // プレイヤー画像のパス
-
-    // 背景画像を読み込む
-    const backgroundImage = new Image();
-    backgroundImage.src = 'background.png'; // 背景画像のパス
+    playerImage.src = 'player.png'; // 画像のパス
 
     // キーの状態
     let keys = {};
@@ -58,6 +54,20 @@
       keys[e.key] = false;
     });
 
+    // プレイヤーを描画
+    function drawPlayer() {
+      ctx.drawImage(playerImage, playerX, playerY, playerWidth, playerHeight);
+    }
+
+    // 背景をブロックに変更
+    let backgroundX = 0; // 背景の初期位置
+    function drawBackground() {
+      ctx.fillStyle = "#228B22"; // 緑色のブロック背景
+      ctx.fillRect(0, canvas.height - 100, canvas.width, 100); // 地面を描画
+      ctx.fillStyle = "#D3D3D3"; // ブロックの色
+      ctx.fillRect(backgroundX, 0, 200, canvas.height); // 背景にブロックを描画
+    }
+
     // プレイヤーの動き
     function updatePlayer() {
       if (keys["ArrowLeft"] || keys["a"]) {
@@ -67,8 +77,8 @@
         playerX += playerVelocity;
       }
 
-      // ジャンプ処理
-      if (!isJumping && (keys[" "] || keys["ArrowUp"])) {
+      // ジャンプ
+      if (!isJumping && (keys[" "])) {
         isJumping = true;
         velocityY = -jumpStrength; // ジャンプ開始
       }
@@ -80,22 +90,26 @@
       }
 
       // 地面に到達したら
-      if (playerY >= canvas.height - playerHeight) {
-        playerY = canvas.height - playerHeight;
+      if (playerY >= canvas.height - playerHeight - 100) {
+        playerY = canvas.height - playerHeight - 100;
         isJumping = false;
         velocityY = 0; // 着地後は速度をリセット
       }
-    }
 
-    // 背景の描画
-    let backgroundX = 0; // 背景の初期位置
-    function drawBackground() {
-      ctx.drawImage(backgroundImage, backgroundX, 0, canvas.width, canvas.height);
-    }
+      // 横スクロール: プレイヤーが画面の端に到達すると背景を移動
+      if (playerX >= canvas.width / 2) {
+        backgroundX -= playerVelocity; // プレイヤーが右に進むと背景が左に移動
+      }
+      if (playerX <= canvas.width / 4) {
+        backgroundX += playerVelocity; // プレイヤーが左に進むと背景が右に移動
+      }
 
-    // プレイヤーを描画
-    function drawPlayer() {
-      ctx.drawImage(playerImage, playerX, playerY, playerWidth, playerHeight);
+      // 背景のスクロール範囲を制限
+      if (backgroundX < -canvas.width) {
+        backgroundX = 0; // 背景が完全に左にスクロールしたらリセット
+      } else if (backgroundX > 0) {
+        backgroundX = -canvas.width; // 背景が完全に右にスクロールしたらリセット
+      }
     }
 
     // ゲームの更新
@@ -106,17 +120,28 @@
       updatePlayer();
       drawPlayer();
 
+      // 進行距離の計算と表示
+      const distance = playerX / 10; // 進んだ距離 (仮に10pxで1メートルとする)
+      const kanjiDistance = toKanji(Math.floor(distance)); // 漢数字に変換
+
+      ctx.font = "30px Arial";
+      ctx.fillStyle = "black";
+      ctx.fillText(kanjiDistance + "メートル", canvas.width - 150, 50); // 右上に表示
+
       requestAnimationFrame(gameLoop);
     }
 
-    // スクロールを無効化
-    document.body.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-    }, { passive: false });
-
-    document.body.addEventListener("touchmove", (e) => {
-      e.preventDefault();
-    }, { passive: false });
+    // 漢数字に変換する関数
+    function toKanji(number) {
+      const kanjiNumbers = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+      const str = number.toString();
+      let kanjiString = '';
+      
+      for (let char of str) {
+        kanjiString += kanjiNumbers[parseInt(char)];
+      }
+      return kanjiString;
+    }
 
     // ゲーム開始
     gameLoop();
