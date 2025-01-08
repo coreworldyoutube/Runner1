@@ -35,7 +35,6 @@
     let jumpStrength = 15; // ジャンプの強さ
     let gravity = 0.8; // 重力の強さ
     let velocityY = 0; // Y方向の速度
-    let isOnGround = false;
 
     // プレイヤー画像を読み込む
     const playerImage = new Image();
@@ -79,8 +78,8 @@
         playerX += playerVelocity;
       }
 
-      // ジャンプ処理
-      if (!isJumping && (keys[" "] || keys["ArrowUp"])) {
+      // ジャンプ
+      if (!isJumping && (keys[" "])) {
         isJumping = true;
         velocityY = -jumpStrength; // ジャンプ開始
       }
