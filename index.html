@@ -54,6 +54,9 @@
       { x: 600, y: canvas.height - 100, width: 50, height: 50 }
     ];
 
+    // カメラ位置
+    let cameraX = 0;
+
     // プレイヤーの動き
     function updatePlayer() {
       if (keys["ArrowLeft"] || keys["a"]) {
@@ -81,26 +84,31 @@
         isJumping = false;
         velocityY = 0;
       }
+
+      // カメラが追いかける
+      if (playerX > cameraX + canvas.width / 2) {
+        cameraX = playerX - canvas.width / 2;
+      }
     }
 
     // 背景描画
     function drawBackground() {
       ctx.fillStyle = "#32CD32"; // 緑色
-      ctx.fillRect(0, canvas.height - 50, canvas.width, 50); // 地面
+      ctx.fillRect(cameraX, canvas.height - 50, canvas.width, 50); // 地面
     }
 
     // 障害物描画
     function drawObstacles() {
       ctx.fillStyle = "#8B4513"; // 茶色
       obstacles.forEach(obstacle => {
-        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        ctx.fillRect(obstacle.x - cameraX, obstacle.y, obstacle.width, obstacle.height);
       });
     }
 
     // プレイヤー描画
     function drawPlayer() {
       ctx.fillStyle = "#FF6347"; // 赤色
-      ctx.fillRect(playerX, playerY, playerWidth, playerHeight);
+      ctx.fillRect(playerX - cameraX, playerY, playerWidth, playerHeight);
     }
 
     // ゲームループ
